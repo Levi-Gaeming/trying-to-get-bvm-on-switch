@@ -807,10 +807,15 @@ update_check
 copy_icons
 
 #check system for compatibility
-if [ "$(id -u)" == 0 ]; then
-  error "BVM cannot be run as root user. Wayland programs need to be run as a non-root user."
+# if [ "$(id -u)" == 0 ]; then
+#   error "BVM cannot be run as root user. Wayland programs need to be run as a non-root user."
+# elif [ "$(modinfo --filename kvm)" != "(builtin)" ] && ! sudo modprobe kvm ;then
+#   error "User error: KVM kernel module is needed but missing. Command that failed was 'sudo modprobe kvm'"
+
 elif [ "$(modinfo --filename kvm)" != "(builtin)" ] && ! sudo modprobe kvm ;then
   error "User error: KVM kernel module is needed but missing. Command that failed was 'sudo modprobe kvm'"
+elif [ ! -e /dev/kvm ]; then
+  error "/dev/kvm not found. KVM may not be supported, or the device node wasn't created. Try rebooting or loading the module manually with 'sudo modprobe kvm'."
 
 #it seems being part of the kvm group is unnecessary
 #elif ! groups | grep -q ' kvm ' ;then
