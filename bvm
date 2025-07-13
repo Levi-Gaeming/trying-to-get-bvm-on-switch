@@ -808,23 +808,23 @@ copy_icons
 
 # Check system for compatibility
 
-# First, check if /dev/kvm exists
-if [ ! -e /dev/kvm ]; then
-  error "/dev/kvm not found. KVM may not be supported or the device node wasn't created. Try rebooting or manually loading the module with 'sudo modprobe kvm'."
-fi
-
-# Then, ensure script is not run as root
 if [ "$(id -u)" == 0 ]; then
   error "BVM cannot be run as root user. Wayland programs need to be run as a non-root user."
 fi
 
-# Check if kvm module is built-in or loadable
 kvm_modinfo=$(modinfo --filename kvm 2>/dev/null || echo "notfound")
-if [ "$kvm_modinfo" != "(builtin)" ]; then
+
+if [ "$kvm_modinfo" != "(builtin)" ] && [ "$kvm_modinfo" != "notfound" ]; then
+  # Try to load kvm module only if it is a loadable module (not builtin or missing)
   if ! sudo modprobe kvm; then
     error "User error: KVM kernel module is needed but missing. Command 'sudo modprobe kvm' failed."
   fi
 fi
+
+if [ ! -e /dev/kvm ]; then
+  error "/dev/kvm not found. KVM may not be supported or the device node wasn't created. Try rebooting or loading the module manually with 'sudo modprobe kvm'."
+fi
+
 
 #it seems being part of the kvm group is unnecessary
 #elif ! groups | grep -q ' kvm ' ;then
